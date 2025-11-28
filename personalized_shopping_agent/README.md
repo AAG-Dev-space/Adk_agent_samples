@@ -1,282 +1,105 @@
-# Personalized Shopping
+# 개인화 쇼핑 에이전트
 
-## Overview of the Agent
+> **참고**: 이 에이전트는 데모용 간소화 버전입니다. 도구(SearchTool, ClickTool)는 현재 **외부 의존성 없는 껍데기 구현**으로, A2A 프로토콜 테스트 및 시연 목적으로만 동작합니다.
 
-This agent sample efficiently provides tailored product recommendations within the ecosystem of a specific brand, merchant, or online marketplace. It enhances the shopping experience within its own context by using targeted data and offering relevant suggestions.
+## 개요
 
-### Agent Details
+A2A(Agent-to-Agent) 프로토콜 통합을 시연하는 간단한 대화형 쇼핑 어시스턴트입니다.
 
-The personalized-shopping agent has the following capabilities:
+### 현재 상태
 
-* Navigates specific websites to gather product information and understand available options.
+이 에이전트는 다음을 위한 **최소 작동 샘플**입니다:
+- A2A 프로토콜 준수 시연
+- 에이전트 구조 및 도구 통합 패턴 제시
+- 커스텀 이커머스 에이전트 개발의 시작점 제공
 
-* Identifies suitable products using text and image-based search applied to a specific catalog.
+**중요**: 검색 및 클릭 도구는 현재 **실제 제품 데이터베이스나 웹 스크래핑 기능이 없는 스텁 구현**입니다. 데모 목적으로 목(mock) 응답을 반환합니다.
 
-* Compares product features or within a defined brand or marketplace scope.
+## 기능
 
-* Recommends products based on user behavior and profile data.
+- **대화형 인터페이스**: 채팅 기반 제품 추천
+- **도구 통합**: 도구 호출 패턴 시연 (스텁 구현)
+- **A2A 프로토콜**: A2A v0.3.0 명세 완전 준수
+- **Docker 지원**: Dockerfile 포함된 간편한 배포
+- **최소 의존성**: 외부 데이터베이스 없는 경량 설정
 
-The agent’s default configuration allows you to simulate interactions with a focused shopper. It demonstrates how an agent navigates a specific retail environment.
+## 빠른 시작
 
-| <div align="center">Feature</div> | <div align="center">Description</div> |
-| --- | --- |
-| <div align="center">**Interaction Type**</div> | <div align="center">Conversational</div> |
-| <div align="center">**Complexity**</div>  | <div align="center">Easy</div> |
-| <div align="center">**Agent Type**</div>  | <div align="center">Single Agent</div> |
-| <div align="center">**Components**</div>  | <div align="center">Web Environment: Access to a pre-indexed product website</div> |
-|  | <div align="center">SearchTool (to retrieve relevant product information)</div> |
-|  | <div align="center">ClickTool (to navigate the website)</div> |
-|  | <div align="center">Conversational Memory</div> |
-| <div align="center">**Vertical**</div>  | <div align="center">E-Commerce</div> |
+### 사전 요구사항
 
+- Python 3.10 이상
+- Docker (컨테이너 배포 시)
 
-### Architecture
-![Personalized Shopping Agent Architecture](ps_architecture.png)
-
-### Key Features
-
-The key features of the personalized-shopping agent include:
-*  **Environment:** The agent can interact in an e-commerce web environment with 1.18M of products.
-*  **Memory:** The agent maintains a conversational memory with all the previous-turns information in its context window.
-*  **Tools:**
-
-    _Search_: The agent has access to a search-retrieval engine, where it can perform key-word search for the related products.
-
-    _Click_: The agent has access to the product website and it can navigate the website by clicking buttons.
-*  **Evaluation:**
-    The agent uses `tool_trajectory_avg_score` and `response_match_score` to measure user satisfaction.
-
-    The evaluation code is located under `eval/test_eval.py`.
-
-    The unittest for tools is located under `tests/test_tools.py`.
-
-
-## Setup and Installation
-
-1.  **Prerequisites:**
-
-* Python 3.10+
-* uv for dependency management
-
-* Install uv:
-
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
-
-* Clone this repo and install dependencies:
-
-    ```bash
-    cd adk-samples/python/agents/personalized-shopping
-    uv sync
-    ```
-
-2.  **Installation:**
-
-* To run the agent, first download the JSON files containing the product information, which are necessary to initialize the web environment the agent will interact with.
-
-    ```bash
-    cd personalized_shopping/shared_libraries
-    mkdir data
-    cd data
-
-    # Download items_shuffle_1000 (4.5MB)
-    gdown https://drive.google.com/uc?id=1EgHdxQ_YxqIQlvvq5iKlCrkEKR6-j0Ib;
-
-    # Download items_ins_v2_1000 (147KB)
-    gdown https://drive.google.com/uc?id=1IduG0xl544V_A_jv3tHXC0kyFi7PnyBu;
-
-    # Download items_shuffle (5.1GB)
-    gdown https://drive.google.com/uc?id=1A2whVgOO0euk5O13n2iYDM0bQRkkRduB;
-
-    # Download items_ins_v2 (178MB)
-    gdown https://drive.google.com/uc?id=1s2j6NgHljiZzQNL3veZaAiyW_qDEgBNi;
-
-    # Download items_human_ins (4.9MB)
-    gdown https://drive.google.com/uc?id=14Kb5SPBk_jfdLZ_CDBNitW98QLDlKR5O
-    ```
-
-* Then you need to index the product data so that they can be used by the search engine:
-
-    ```bash
-    # Convert items.json => required doc format
-    cd ../search_engine
-    mkdir -p resources_100 resources_1k resources_10k resources_50k
-    uv run python convert_product_file_format.py
-
-    # Index the products
-    mkdir -p indexes
-    bash run_indexing.sh
-    cd ../../
-    ```
-3.  **Configuration:**
-
-* Update the `.env.example` file with your cloud project name and region, then rename it to `.env`.
-
-* Authenticate your GCloud account.
-
-    ```bash
-    gcloud auth application-default login
-    ```
-
-## Running the Agent
-
-- **Option 1**: You may talk to the agent using the CLI:
-
-    ```bash
-    adk run personalized_shopping
-    ```
-
-- **Option 2**: You may run the agent on a web interface. This will start a web server on your machine. You may go to the URL printed on the screen and interact with the agent in a chatbot interface.
-
-    ```bash
-    cd personalized-shopping
-    adk web
-    ```
-    Please select the `personalized_shopping` option from the dropdown list located at the top left of the screen. Now you can start talking to the agent!
-
-
-> **Note**: The first run may take some time as the system loads approximately 50,000 product entries into the web environment for the search engine. :)
-
-### Example Interaction
-
-The user can look for product recommendations with both text-based search and image-based search. Here're two quick examples of how a user might interact with the agent.
-
-____________
-
-#### Example 1: text based search
-
-* Session file: [text_search_floral_dress.session.json](tests/example_interactions/text_search_floral_dress.session.md)
-
-#### Example 2: image based search
-
-* Session file: [image_search_denim_skirt.session.json](tests/example_interactions/text_search_floral_dress.session.md) (The input image file for this session is [example_product.png](tests/example_interactions/example_product.png))
-
-## Running Eval
-
-The evaluation assesses the agent's performance on tasks defined in the evalset. Each example in the evalset includes a query, expected tool use, and a reference answer. The judgment criteria are specified in `test_config.json`.
-
-The evaluation of the agent can be run from the `personalized-shopping` directory using
-the `pytest` module:
+### Docker 실행 방법
 
 ```bash
-uv sync --dev
-uv run pytest eval
-```
+# 이미지 빌드
+docker build -t personalized-shopping:latest .
 
-You can add more eval prompts by adding your dataset into the `eval/eval_data` folder.
-
-To run unittest for tools, you can run the following command from the `personalized-shopping` directory:
-
-```bash
-uv run pytest tests
-```
-
-## Deployment
-
-* The personalized shopping agent sample can be deployed to Vertex AI Agent Engine. In order to inherit all dependencies of your agent you can build the wheel file of the agent and run the deployment.
-
-1.  **Build Personalized Shopping Agent WHL File**
-
-    ```bash
-    cd agents/personalized-shopping
-    uv build --wheel --out-dir deployment
-    ```
-
-1.  **Deploy the Agent to Agents Engine**
-
-    ```bash
-    cd agents/personalized-shopping/deployment
-    uv run python deploy.py
-    ```
-
-    > **Note**: This process could take more than 10 minutes to finish, please be patient.
-
-When the deployment finishes, it will print a line like this:
-
-```
-Created remote agent: projects/<PROJECT_NUMBER>/locations/<PROJECT_LOCATION>/reasoningEngines/<AGENT_ENGINE_ID>
-```
-
-You may interact with the deployed agent programmatically in Python:
-
-```python
-import dotenv
-dotenv.load_dotenv()  # May skip if you have exported environment variables.
-from vertexai import agent_engines
-
-agent_engine_id = "AGENT_ENGINE_ID" #Remember to update the ID here.
-user_input = "Hello, can you help me find a summer dress? I want something flowy and floral."
-
-agent_engine = agent_engines.get(agent_engine_id)
-session = agent_engine.create_session(user_id="new_user")
-for event in agent_engine.stream_query(
-    user_id=session["user_id"], session_id=session["id"], message=user_input
-):
-    for part in event["content"]["parts"]:
-        print(part["text"])
-```
-
-To delete the deployed agent, you may run the following command:
-
-```bash
-uv run python deployment/deploy.py --delete --resource_id=${AGENT_ENGINE_ID}
-```
-
-### Alternative: Using Agent Starter Pack
-
-You can also use the [Agent Starter Pack](https://goo.gle/agent-starter-pack) to create a production-ready version of this agent with additional deployment options:
-
-```bash
-# Create and activate a virtual environment
-python -m venv .venv && source .venv/bin/activate # On Windows: .venv\Scripts\activate
-
-# Install the starter pack and create your project
-pip install --upgrade agent-starter-pack
-agent-starter-pack create my-personalized-shopping -a adk@personalized-shopping
-```
-
-<details>
-<summary>⚡️ Alternative: Using uv</summary>
-
-If you have [`uv`](https://github.com/astral-sh/uv) installed, you can create and set up your project with a single command:
-```bash
-uvx agent-starter-pack create my-personalized-shopping -a adk@personalized-shopping
-```
-This command handles creating the project without needing to pre-install the package into a virtual environment.
-
-</details>
-
-The starter pack will prompt you to select deployment options and provides additional production-ready features including automated CI/CD deployment scripts.
-
-## Customization
-
-This agent sample uses the webshop environment from [princeton-nlp/WebShop](https://github.com/princeton-nlp/WebShop), which includes 1.18 million real-world products and 12,087 crowd-sourced text instructions.
-
-By default, the agent loads only 50,000 products into the environment to prevent out-of-memory (OOM) issues. You can adjust this by modifying the `num_product_items` parameter in [init_env.py](personalized_shopping/shared_libraries/init_env.py).
-
-For customization, you can add your own product data and place the annotations in `items_human_ins.json`, `items_ins_v2.json`, and `items_shuffle.json`, then launch the agent sample easily.
-
-## Troubleshooting
-
-* **Q1:** I'm having issues with `gdown` during agent setup. What should I do?
-* **A1:** You can manually download the files from the individual Google Drive links and place them in the `personalized-shopping/personalized_shopping/shared_libraries/data` folder.
-
-## Acknowledgement
-We are grateful to the developers of [princeton-nlp/WebShop](https://github.com/princeton-nlp/WebShop) for their simulated environment. This agent incorporates modified code from their project.
-
-
-## Disclaimer
-
-This agent sample is provided for illustrative purposes only and is not intended for production use. It serves as a basic example of an agent and a foundational starting point for individuals or teams to develop their own agents.
-
-This sample has not been rigorously tested, may contain bugs or limitations, and does not include features or optimizations typically required for a production environment (e.g., robust error handling, security measures, scalability, performance considerations, comprehensive logging, or advanced configuration options).
-
-Users are solely responsible for any further development, testing, security hardening, and deployment of agents based on this sample. We recommend thorough review, testing, and the implementation of appropriate safeguards before using any derived agent in a live or critical system.
-
-
-docker run -d -p 8100:8000 --name shopping-agent-litellm \
+# 컨테이너 실행
+docker run -d -p 8100:8000 \
+  --name shopping-agent \
   -e AGENT_MODEL="gemini/gemini-2.5-flash" \
   -e OPENAI_API_BASE="http://host.docker.internal:4444" \
   -e OPENAI_API_KEY="sk-1234" \
-  personalized-shopping:v1.1.0
+  personalized-shopping:latest
+
+# 로그 확인
+docker logs -f shopping-agent
+
+# http://localhost:8100 으로 접속
+```
+
+### 환경 변수
+
+- `AGENT_MODEL`: LLM 모델 식별자 (기본값: `gemini/gemini-2.5-flash`)
+- `OPENAI_API_BASE`: LLM 호출을 위한 API 엔드포인트
+- `OPENAI_API_KEY`: API 인증 키
+
+### 에이전트 확인
+
+실행 후 에이전트 동작 확인:
+
+```bash
+# AgentCard 확인
+curl http://localhost:8100/.well-known/agent-card.json
+
+# 테스트 메시지 전송 (A2A 프로토콜)
+curl -X POST http://localhost:8100/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"message": "여름 원피스 찾아줘"}'
+```
+
+## 아키텍처
+
+```
+사용자 요청 → FastAPI 서버 → 에이전트 로직 → LLM (OpenAI 호환 API)
+                                     ↓
+                              도구 호출 (스텁 구현)
+                                     ↓
+                              응답 생성
+```
+
+### 도구 구현 현황
+
+현재 도구들은 데모용 **스텁 구현**입니다:
+
+- **SearchTool** ([tools/search.py](personalized_shopping/tools/search.py)): 목(mock) 제품 검색 결과 반환
+- **ClickTool** ([tools/click.py](personalized_shopping/tools/click.py)): 웹사이트 탐색 시뮬레이션
+
+실제 기능을 추가하려면 해당 파일에서 실제 검색/탐색 로직을 구현하세요.
+
+## 커스터마이징
+
+실제 기능으로 에이전트를 확장하려면:
+
+1. **실제 검색 구현**: [tools/search.py](personalized_shopping/tools/search.py)를 수정하여 제품 데이터베이스에 연결
+2. **실제 탐색 추가**: [tools/click.py](personalized_shopping/tools/click.py)를 실제 웹 스크래핑 또는 API 호출로 업데이트
+3. **프롬프트 커스터마이징**: [prompt.py](personalized_shopping/prompt.py)를 수정하여 에이전트 동작 조정
+4. **AgentCard 업데이트**: [server.py](server.py)를 수정하여 에이전트의 실제 기능 반영
+
+## 라이선스 및 출처
+
+이 샘플은 A2A 프로토콜 패턴을 시연하며 교육 목적으로 제공됩니다.
+
+원본 컨셉은 [princeton-nlp/WebShop](https://github.com/princeton-nlp/WebShop)에서 영감을 받았습니다.

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  confluence-search-agent:
+    build: .
+    container_name: confluence-search-agent
+    ports:
+      - "8002:8002"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8002
+      - PROTOCOL=JSONRPC
+      # LLM Configuration
+      - AGENT_MODEL=${AGENT_MODEL:-gemini/gemini-2.0-flash-exp}
+      - AGENT_API_BASE=${AGENT_API_BASE:-http://host.docker.internal:4444}
+      - AGENT_API_KEY=${AGENT_API_KEY}
+      # MCP Server Configuration
+      - CONFLUENCE_MCP_SERVER_URL=${CONFLUENCE_MCP_SERVER_URL:-http://host.docker.internal:3000}
+      - CONFLUENCE_MCP_API_TOKEN=${CONFLUENCE_MCP_API_TOKEN}
+      # Agent Behavior
+      - MAX_SEARCH_RESULTS=${MAX_SEARCH_RESULTS:-5}
+      - CITATION_REQUIRED=${CITATION_REQUIRED:-true}
+      - USE_REASONING=${USE_REASONING:-true}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8002/.well-known/agent-card.json')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -6,22 +6,19 @@ This agent uses a hierarchical multi-agent structure:
 - Document Searcher: Searches Confluence via MCP tools
 - Answer Synthesizer: Creates accurate, cited responses
 
+MCP Integration:
+- Uses ADK's official McpToolset with streamable-http (SSE) connection
+- Dynamically discovers tools from the MCP server at runtime
+- All Confluence credentials are managed by the MCP server
+
 References:
 - Multi-Agent Systems: https://github.com/google/adk-docs/blob/main/docs/agents/multi-agents.md
-- MCP Integration: https://github.com/google/adk-docs/blob/main/docs/mcp/index.md
+- MCP Integration: https://google.github.io/adk-docs/tools-custom/mcp-tools/
 """
 
 from google.adk.agents import LlmAgent
-from google.adk.tools import FunctionTool
 
-from .config import llm_model
-from .tools.confluence_mcp import (
-    search_confluence,
-    get_page_content,
-    search_in_space,
-    list_recent_pages,
-    get_page_by_title
-)
+from .config import llm_model, confluence_mcp_toolset
 from .prompt import (
     root_coordinator_instruction,
     query_analyzer_instruction,
@@ -41,18 +38,13 @@ query_analyzer = LlmAgent(
 
 # Sub-Agent 2: Document Searcher
 # Executes searches and retrieves Confluence content via MCP
+# Uses McpToolset which dynamically discovers tools from the MCP server
 document_searcher = LlmAgent(
     model=llm_model,
     name="document_searcher",
     description="Searches Confluence documentation using MCP tools and retrieves relevant pages",
     instruction=document_searcher_instruction,
-    tools=[
-        FunctionTool(func=search_confluence),
-        FunctionTool(func=get_page_content),
-        FunctionTool(func=search_in_space),
-        FunctionTool(func=list_recent_pages),
-        FunctionTool(func=get_page_by_title)
-    ]
+    tools=[confluence_mcp_toolset]  # ADK's official MCP integration
 )
 
 # Sub-Agent 3: Answer Synthesizer

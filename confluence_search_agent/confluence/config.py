@@ -3,6 +3,8 @@
 import os
 from typing import Optional
 from google.adk.models.lite_llm import LiteLlm
+from google.adk.tools.mcp_tool import McpToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import SseConnectionParams
 
 # Get model configuration from environment variables
 AGENT_MODEL = os.getenv("AGENT_MODEL", "gemini/gemini-2.5-flash-lite")
@@ -20,21 +22,20 @@ llm_model = LiteLlm(
 )
 
 # Confluence MCP Server Configuration
-# NOTE: This agent connects ONLY to the MCP server.
-# All Confluence credentials are configured on the MCP server side.
+# Uses ADK's official McpToolset with streamable-http (SSE) connection
+# Reference: https://google.github.io/adk-docs/tools-custom/mcp-tools/
 
 CONFLUENCE_MCP_SERVER_URL = os.getenv(
     "CONFLUENCE_MCP_SERVER_URL",
-    "http://localhost:3000"  # URL of your MCP server
+    "http://localhost:3000/mcp"  # Dummy MCP server endpoint
 )
 
-CONFLUENCE_MCP_API_TOKEN = os.getenv(
-    "CONFLUENCE_MCP_API_TOKEN",
-    ""  # Optional: Auth token for MCP server access
+# Create MCP toolset for Confluence
+# Uses streamable-http (SSE) connection to MCP server
+# All Confluence credentials are managed by the MCP server itself
+confluence_mcp_toolset = McpToolset(
+    connection_params=SseConnectionParams(url=CONFLUENCE_MCP_SERVER_URL),
 )
-
-# Confluence credentials are NOT needed here.
-# They should be configured on the MCP server itself.
 
 # Agent Configuration
 MAX_SEARCH_RESULTS = int(os.getenv("MAX_SEARCH_RESULTS", "5"))

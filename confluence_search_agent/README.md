@@ -246,11 +246,6 @@ To reduce latency:
 - [MCP Integration](https://github.com/google/adk-docs/blob/main/docs/mcp/index.md)
 - [A2A Protocol](https://github.com/google/adk-docs)
 
-## 📝 License
-
-Internal Use Only - Company Confidential
-
----
 
 **Built with**:
 - Google ADK (Agent Development Kit)
